@@ -98,7 +98,3 @@ Contribuições são bem-vindas! Sinta-se à vontade para abrir issues ou pull r
 Este projeto está sob a licença MIT.
 
 ---
-
-<p align="center">
-  Feito com ❤️ por <a href="https://github.com/aldeandersantos">Aldeander Santos</a>
-</p>
