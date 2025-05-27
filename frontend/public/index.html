@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Chatbot IA</title>
+  <style>
+    body { background: #f0f0f0; font-family: Arial, sans-serif; }
+    #chatbox { background: #fff; width: 400px; margin: 40px auto; border-radius: 8px; box-shadow: 0 2px 10px #0002; padding: 20px; }
+    #messages { height: 300px; overflow-y: auto; border: 1px solid #eee; border-radius: 6px; padding: 10px; margin-bottom: 10px; }
+    .msg { margin-bottom: 8px; }
+    .user { color: #1976d2; font-weight: bold; }
+    .bot { color: #388e3c; font-weight: bold; }
+    #input { width: 80%; padding: 8px; }
+    #send { padding: 8px 16px; background: #1976d2; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+    #send:disabled { background: #90caf9; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+  <div id="chatbox">
+    <h2>Chatbot IA</h2>
+    <div id="messages"></div>
+    <input id="input" type="text" placeholder="Digite sua mensagem..." autocomplete="off" />
+    <button id="send">Enviar</button>
+    <div style="margin-top:10px;">
+      <input id="sessionInput" type="text" placeholder="Session ID (opcional)" style="width:220px; padding:6px;" />
+      <button id="changeSession">Trocar Sessão</button>
+    </div>
+  </div>
+  <script>
+    const messagesDiv = document.getElementById('messages');
+    const input = document.getElementById('input');
+    const sendBtn = document.getElementById('send');
+    const sessionInput = document.getElementById('sessionInput');
+    const changeSessionBtn = document.getElementById('changeSession');
+
+    function addMessage(sender, text) {
+      const msgDiv = document.createElement('div');
+      msgDiv.classList.add('msg');
+      msgDiv.innerHTML = `<span class="${sender === 'Você' ? 'user' : 'bot'}">${sender}:</span> ${text}`;
+      messagesDiv.appendChild(msgDiv);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    let sessionId = localStorage.getItem('session_id') || '';
+    sessionInput.value = sessionId;
+
+    async function sendMessage() {
+      const text = input.value.trim();
+      if (!text) return;
+      addMessage('Você', text);
+      input.value = '';
+      sendBtn.disabled = true;
+      addMessage('IA', '<i>Digitando...</i>');
+      try {
+        const res = await fetch('http://localhost:5000/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: text, session_id: sessionId })
+        });
+        const data = await res.json();
+        messagesDiv.lastChild.remove();
+        addMessage('IA', data.response || 'Sem resposta');
+        if (data.session_id) {
+          sessionId = data.session_id;
+          localStorage.setItem('session_id', sessionId);
+          sessionInput.value = sessionId;
+        }
+      } catch (e) {
+        messagesDiv.lastChild.remove();
+        addMessage('IA', 'Erro ao se comunicar com o servidor.');
+      }
+      sendBtn.disabled = false;
+    }
+
+    changeSessionBtn.onclick = function() {
+      const newSession = sessionInput.value.trim();
+      sessionId = newSession;
+      localStorage.setItem('session_id', sessionId);
+      messagesDiv.innerHTML = '';
+      addMessage('IA', '<i>Nova sessão selecionada.</i>');
+    };
+
+    sendBtn.onclick = sendMessage;
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') sendMessage();
+    });
+  </script>
+</body>
+</html>
