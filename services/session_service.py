@@ -23,12 +23,15 @@ class SessionService:
         return flask_session["session_id"]
     def load_messages(self, session_id, personality_type="nutricionista"):
         session_file = os.path.join(self.sessions_dir, f"{session_id}.json")
-        
+        system_prompt = self.prompt_service.get_system_prompt(personality_type)
         if os.path.exists(session_file):
             with open(session_file, "r", encoding="utf-8") as f:
-                return json.load(f)
+                messages = json.load(f)
+            if messages and messages[0]["role"] == "system" and messages[0]["content"] != system_prompt:
+                messages[0]["content"] = system_prompt
+                self.save_messages(session_id, messages)
+            return messages
         else:
-            system_prompt = self.prompt_service.get_system_prompt(personality_type)
             return [
                 {"role": "system", "content": system_prompt}
             ]
