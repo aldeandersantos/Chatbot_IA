@@ -6,3 +6,4 @@ pytest-flask==1.3.0
 flask-cors==6.0.0
 psycopg2==2.9.10
 sqlalchemy==2.0.41
+gunicorn==23.0.0
