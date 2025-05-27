@@ -180,7 +180,6 @@ O sistema inclui múltiplas personalidades especializadas:
 | 👩‍⚕️ **medico** | Saúde geral | Informações médicas, prevenção, sintomas |
 | 🧠 **psicologo** | Saúde mental | Bem-estar emocional, técnicas de relaxamento |
 | 🐕 **veterinario** | Cuidados animais | Saúde pet, alimentação animal, comportamento |
-| 📋 **jose_reinaldo_licitacoes** | Licitações públicas | Assessoria para vender ao governo |
 
 ### Endpoints da API
 
