@@ -14,6 +14,7 @@
     #send { padding: 8px 16px; background: #1976d2; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
     #send:disabled { background: #90caf9; cursor: not-allowed; }
   </style>
+  <script src="config.js"></script>
 </head>
 <body>
   <div id="chatbox">
@@ -38,13 +39,18 @@
     const changeSessionBtn = document.getElementById('changeSession');
     const personalitySelect = document.getElementById('personalitySelect');
     let personality = '';
+    
+    // URLs dinâmicas carregadas do backend
+    let apiConfig = FRONTEND_CONFIG.DEFAULT_URLS;
 
     function addMessage(sender, text) {
       const msgDiv = document.createElement('div');
       msgDiv.classList.add('msg');
       msgDiv.innerHTML = `<span class="${sender === 'Você' ? 'user' : 'bot'}">${sender}:</span> ${text}`;
       messagesDiv.appendChild(msgDiv);
-      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      if (FRONTEND_CONFIG.BEHAVIOR.auto_scroll) {
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      }
     }
 
     let sessionId = localStorage.getItem('session_id') || '';
@@ -52,7 +58,7 @@
 
     async function loadPersonalities() {
       try {
-        const res = await fetch('http://127.0.0.1:5000/personalities');
+        const res = await fetch(apiConfig.backend_personalities_url);
         const data = await res.json();
         personalitySelect.innerHTML = '';
         data.personalities.forEach(p => {
@@ -61,16 +67,23 @@
           opt.textContent = p.charAt(0).toUpperCase() + p.slice(1);
           personalitySelect.appendChild(opt);
         });
-        personality = data.default;
-        personalitySelect.value = data.default;
+        personality = data.default || FRONTEND_CONFIG.BEHAVIOR.default_personality;
+        personalitySelect.value = personality;
       } catch (e) {
         const opt = document.createElement('option');
         opt.value = '';
-        opt.textContent = 'Erro ao carregar IAs';
+        opt.textContent = FRONTEND_CONFIG.UI.loading_message;
         personalitySelect.appendChild(opt);
       }
     }
-    loadPersonalities();
+
+    // Inicialização sequencial
+    async function initializeApp() {
+      apiConfig = await getApiUrls();
+      await loadPersonalities();
+    }
+    
+    initializeApp();
 
     personalitySelect.onchange = function() {
       personality = personalitySelect.value;
@@ -82,9 +95,9 @@
       addMessage('Você', text);
       input.value = '';
       sendBtn.disabled = true;
-      addMessage('IA', '<i>Digitando...</i>');
+      addMessage('IA', FRONTEND_CONFIG.UI.typing_indicator);
       try {
-        const res = await fetch('http://localhost:5000/chat', {
+        const res = await fetch(apiConfig.backend_chat_url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ message: text, session_id: sessionId, personality })
@@ -92,14 +105,14 @@
         const data = await res.json();
         messagesDiv.lastChild.remove();
         addMessage('IA', data.response || 'Sem resposta');
-        if (data.session_id) {
+        if (data.session_id && FRONTEND_CONFIG.BEHAVIOR.save_session_to_localStorage) {
           sessionId = data.session_id;
           localStorage.setItem('session_id', sessionId);
           sessionInput.value = sessionId;
         }
       } catch (e) {
         messagesDiv.lastChild.remove();
-        addMessage('IA', 'Erro ao se comunicar com o servidor.');
+        addMessage('IA', FRONTEND_CONFIG.UI.error_message);
       }
       sendBtn.disabled = false;
     }
@@ -107,9 +120,11 @@
     changeSessionBtn.onclick = function() {
       const newSession = sessionInput.value.trim();
       sessionId = newSession;
-      localStorage.setItem('session_id', sessionId);
+      if (FRONTEND_CONFIG.BEHAVIOR.save_session_to_localStorage) {
+        localStorage.setItem('session_id', sessionId);
+      }
       messagesDiv.innerHTML = '';
-      addMessage('IA', '<i>Nova sessão selecionada.</i>');
+      addMessage('IA', FRONTEND_CONFIG.UI.new_session_message);
       personality = personalitySelect.value;
     };
 

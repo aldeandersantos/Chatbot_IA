@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import useApiConfig from '../hooks/useApiConfig';
 
 function Chat() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const { config: apiConfig, loading: configLoading, error: configError } = useApiConfig();
 
   const sendMessage = async () => {
     if (!input.trim()) return;
@@ -12,18 +14,31 @@ function Chat() {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/chat', {
+      const response = await fetch(apiConfig.backend_chat_url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: input })
       });
       const data = await response.json();
-      setMessages(msgs => [...msgs, { sender: 'IA', text: data.resposta }]);
+      setMessages(msgs => [...msgs, { sender: 'IA', text: data.response || data.resposta || 'Sem resposta' }]);
     } catch (error) {
       setMessages(msgs => [...msgs, { sender: 'IA', text: 'Erro ao se comunicar com o servidor.' }]);
     }
     setLoading(false);
   };
+
+  if (configLoading) {
+    return (
+      <div className="bg-white rounded shadow-md p-6 w-96">
+        <div className="text-center">
+          <div className="spinner-border" role="status">
+            <span className="sr-only">Carregando configurações...</span>
+          </div>
+          <p>Carregando configurações...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded shadow-md p-6 w-96">
