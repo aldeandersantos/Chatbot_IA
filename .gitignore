@@ -79,3 +79,7 @@ venv.bak/
 .mypy_cache/
 .dmypy.json
 .pyre/
+
+# Regras IA
+ia_roles/roles.json
+ia_roles/personality.json
