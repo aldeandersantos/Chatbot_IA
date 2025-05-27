@@ -4,3 +4,5 @@ python-dotenv
 pytest
 pytest-flask
 flask-cors
+psycopg2==2.9.10
+sqlalchemy==2.0.41

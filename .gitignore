@@ -64,7 +64,7 @@ coverage.xml
 
 # dotenv
 .env
-.env.*
+.env
 .venv
 venv/
 ENV/
@@ -83,3 +83,8 @@ venv.bak/
 # Regras IA
 ia_roles/roles.json
 ia_roles/personality.json
+
+# Banco de Dados
+/*.db
+/*.sqlite3
+/*.sqlite
