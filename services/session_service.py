@@ -3,6 +3,7 @@ import json
 import uuid
 from config import Config
 from .prompt_service import PromptService
+from db.session_storage import save_session, load_session
 
 
 class SessionService:
@@ -21,22 +22,20 @@ class SessionService:
             flask_session["session_id"] = str(uuid.uuid4())
         
         return flask_session["session_id"]
+    
     def load_messages(self, session_id, personality_type="nutricionista"):
-        session_file = os.path.join(self.sessions_dir, f"{session_id}.json")
         system_prompt = self.prompt_service.get_system_prompt(personality_type)
-        if os.path.exists(session_file):
-            with open(session_file, "r", encoding="utf-8") as f:
-                messages = json.load(f)
+        
+        messages = load_session(session_id)
+        
+        if messages:
             if messages and messages[0]["role"] == "system" and messages[0]["content"] != system_prompt:
                 messages[0]["content"] = system_prompt
                 self.save_messages(session_id, messages)
             return messages
         else:
             return [
-                {"role": "system", "content": system_prompt}
-            ]
+                {"role": "system", "content": system_prompt}            ]
     
     def save_messages(self, session_id, messages):
-        session_file = os.path.join(self.sessions_dir, f"{session_id}.json")
-        with open(session_file, "w", encoding="utf-8") as f:
-            json.dump(messages, f, ensure_ascii=False, indent=2)
+        save_session(session_id, messages)
