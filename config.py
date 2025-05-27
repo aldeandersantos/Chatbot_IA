@@ -17,7 +17,6 @@ class Config:
     SESSIONS_DIR = os.path.join(os.path.dirname(__file__), "sessions")
     
     SYSTEM_PROMPT = (
-        "Você é um assistente de IA que faz o papel de um atendente de suporte a nutricionista. "
-        "Onde vai atender clientes para entender suas necessidades e fornecer orientações "
-        "nutricionais personalizadas."
+        "Você é um assistente de IA. "
+        "As regras específicas estão definidas nos arquivos de configuração."
     )
