@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 import json
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("FLASK_SECRET_KEY", "supersecretkey")  # Adiciona uma chave secreta para sessões
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "supersecretkey")
 load_dotenv()
 
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
@@ -21,6 +21,9 @@ def chat():
 
     if not user_message:
         return jsonify({"error": "Mensagem não fornecida"}), 400
+
+    if not os.path.exists(SESSIONS_DIR):
+        os.makedirs(SESSIONS_DIR)
 
     req_session_id = data.get("session_id")
     if req_session_id:
@@ -60,7 +63,6 @@ def chat():
     ai_message = response.json()["choices"][0]["message"]["content"]
     messages.append({"role": "assistant", "content": ai_message})
 
-    # Salva o histórico atualizado
     with open(session_file, "w", encoding="utf-8") as f:
         json.dump(messages, f, ensure_ascii=False, indent=2)
 
